@@ -10,28 +10,24 @@
 from __future__ import annotations
 import socket
 
-## Constants
-
-
-## Functions
+from .client import Client
+from .connection import Connection
+from .message import Message
 
 
 ## Classes
-class Server:
+class Server(Connection):
     """Junk Jack X Server"""
 
     # -Constructor
-    def __init__(self, max_players: int = 4) -> None:
-        self._socket: socket.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self._users: list[User] = []
-
-    # -Dunder Methods
+    def __init__(self, max_players: int | None = 4) -> None:
+        super().__init__(socket.socket(socket.AF_INET, socket.SOCK_DGRAM))
+        self._clients: list[Client] = []
 
     # -Instance Methods
-    def close(self) -> None:
+    def _on_message(self, message: Message) -> None:
         ''''''
-        print("Closing socket..")
-        self._socket.close()
+        print("[Server] Handling message..")
 
     def run(self, ip: str, port: int) -> None:
         ''''''
@@ -39,10 +35,8 @@ class Server:
         while True:
             pass
 
-    # -Class Methods
-
-    # -Static Methods
-
     # -Properties
-
-    # -Class Properties
+    @property
+    def player_count(self) -> int:
+        ''''''
+        return len(self._clients)
