@@ -13,5 +13,9 @@ HOST: str = "10.0.1.21"
 PORT: int = 12345
 
 ## Body
-server = Server()
-server.run(HOST, PORT)
+if len(sys.argv) > 1 and sys.argv[1] in ("-c", "--client"):
+    client = Client.connect("10.0.1.21", 12345)
+else:
+    server = Server()
+    print(f"Running server @{HOST}:{PORT}")
+    server.run(HOST, PORT)
