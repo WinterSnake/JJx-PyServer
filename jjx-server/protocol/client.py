@@ -7,10 +7,15 @@
 ##-------------------------------##
 
 ## Imports
-from .connection import Address, Connection
+import logging
 import random
 
+from .connection import Address, Connection
 from .message import Message
+
+
+## Constants
+LOGGER = logging.getLogger(__name__)
 
 
 ## Classes
@@ -25,6 +30,10 @@ class User:
         self.id: int = _id
         self._index: int = index
         self.address: Address = address
+
+    # -Dunder Methods
+    def __str__(self) -> str:
+        return f"User[{self.index}]: 0x{self.id:0>8X} @ {self.address}"
 
     # -Properties
     @property
@@ -49,10 +58,12 @@ class Client(Connection, User):
     # -Instance Methods
     def on_message(self, message: Message, address: Address) -> None:
         '''Client message event handler'''
+        log_string = f"(Size={len(message)}): [{message}]"
         if address == self.remote:
-            print(f"[Server](Size={len(message)}): [{message}]")
+            log_string = "[Server]" + log_string
         else:
-            print(f"[Remote](Size={len(message)}): [{message}]")
+            log_string = "[Remote]" + log_string
+        LOGGER.info(log_string)
 
     def run(self, ip: str, port: int) -> None:
         '''Run client listener and event handler'''
@@ -63,10 +74,12 @@ class Client(Connection, User):
 
     # -Instance Methods: Protocol
     def join(self, ip: str, port: int) -> None:
-        '''Send join request to JJx server'''
+        '''Send user join request to JJx server'''
         self._remote_address = (ip, port)
-        self.send(Message(b''), self.remote)
+        msg = Message.join(self.id)
+        bytes_written = self.send(msg, self.remote)
         self.address = self._socket.getsockname()
+        LOGGER.info(f"[Client](Size={len(msg)}): [{msg}] | Sent: {bytes_written} bytes @{self.address[1]}")
 
     # -Properties
     @property

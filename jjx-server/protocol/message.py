@@ -8,6 +8,7 @@
 
 ## Imports
 from __future__ import annotations
+import struct
 
 
 ## Classes
@@ -40,3 +41,46 @@ class Message:
     def from_bytes(cls, data: bytes) -> Message:
         '''Parses socket byte data to produce a JJx message'''
         return cls(data)
+
+    @classmethod
+    def accept(cls, player_id: int, player_index: int, tick: int = 0) -> Message:
+        ''''''
+        _id = struct.pack(">I", player_id)
+        ticks = struct.pack(">H", tick)
+        raw_data = bytes([
+            0x90, 0x00, ticks[0], ticks[1],
+            0x83, 0xFF, 0x00, 0x01,
+            0x00, player_index, 0x00, 0x00,
+            0x00, 0x00, 0x05, 0x78,
+            0x00, 0x00, 0x10, 0x00,
+            0x00, 0x00, 0x00, 0x02,
+            0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x13, 0x88,
+            0x00, 0x00, 0x00, 0x02,
+            0x00, 0x00, 0x00, 0x02,
+            _id[0], _id[1], _id[2], _id[3],
+        ])
+        return cls(raw_data)
+
+    @classmethod
+    def join(cls, player_id: int, tick: int = 0) -> Message:
+        ''''''
+        _id = struct.pack(">I", player_id)
+        ticks = struct.pack(">H", tick)
+        raw_data = bytes([
+            0x8F, 0xFF, ticks[0], ticks[1],
+            0x82, 0xFF, 0x00, 0x01,
+            0x00, 0x00, 0xFF, 0xFF,
+            0x00, 0x00, 0x05, 0x78,
+            0x00, 0x00, 0x10, 0x00,
+            0x00, 0x00, 0x00, 0x02,
+            0x00, 0x09, 0xC4, 0x00,
+            0x00, 0x01, 0xF4, 0x00,
+            0x00, 0x00, 0x13, 0x88,
+            0x00, 0x00, 0x00, 0x02,
+            0x00, 0x00, 0x00, 0x02,
+            _id[0], _id[1], _id[2], _id[3],
+            0x00, 0x00, 0x00, 0x00
+        ])
+        return cls(raw_data)
