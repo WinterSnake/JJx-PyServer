@@ -51,6 +51,8 @@ class Client(Connection, User):
         '''Client message event handler'''
         if address == self.remote:
             print(f"[Server](Size={len(message)}): [{message}]")
+        else:
+            print(f"[Remote](Size={len(message)}): [{message}]")
 
     def run(self, ip: str, port: int) -> None:
         '''Run client listener and event handler'''

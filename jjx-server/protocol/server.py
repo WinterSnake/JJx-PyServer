@@ -32,7 +32,7 @@ class Server(Connection):
     # -Instance Methods
     def on_message(self, message: Message, address: Address) -> None:
         '''Server message event handler'''
-        print(f"[Client](Size={len(message)}): [{message}]")
+        print(f"[Remote](Size={len(message)}): [{message}]")
 
     def run(self, ip: str, port: int) -> None:
         '''Run server listener and event handler'''
