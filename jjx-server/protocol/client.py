@@ -23,13 +23,14 @@ class Client(Connection):
 
     # -Constructor
     def __init__(
-        self, _id: int, index: int, _socket: socket.socket,
-        address: tuple[str, int]
+        self, _id: int, index: int,
+        ip: str, port: int, _socket: socket.socket,
     ) -> None:
         super().__init__(_socket)
         self.id: int = _id
         self.index: int = index
-        self.address: tuple[str, int] = address
+        self.ip: str = ip
+        self.port: int = port
 
     # -Dunder Methods
     def __repr__(self) -> str:
@@ -45,12 +46,27 @@ class Client(Connection):
 
     def run(self) -> None:
         '''Run client message listener'''
-        while True:
-            pass
+        from threading import Thread
+
+        # -Internal Functions
+        def _run(self) -> None:
+            while True:
+                msg = self.recv_message()[0]
+                self._on_message(msg)
+
+        # -Body
+        task = Thread(target=_run, args=(self, ))
+        task.start()
 
     def _send_message(self, message: Message) -> None:
         '''Send message to client's given address'''
-        super().send_message(message, self._address)
+        super().send_message(message, self.ip, self.port)
+
+    # -Instance Methods: Protocol
+    def join(self) -> None:
+        '''Broadcast JOIN message to address'''
+        msg = Message(Message.Type.Join, player_id=self.id)
+        self._send_message(msg)
 
     # -Class Methods
     @classmethod
@@ -60,5 +76,10 @@ class Client(Connection):
         if _id < 0:
             _id = randint(0x0001, 0xFFFF)
         return cls(
-            _id, -1, socket.socket(socket.AF_INET, socket.SOCK_DGRAM), (ip, port)
+            _id, -1, ip, port, socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         )
+
+    # -Properties
+    @property
+    def address(self) -> tuple[str, int]:
+        return (self.ip, self.port)
