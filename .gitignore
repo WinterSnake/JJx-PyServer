@@ -3,3 +3,6 @@ __pycache__
 
 # Session: tmux
 .tmux-session
+
+# Logs
+*.log
