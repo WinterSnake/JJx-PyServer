@@ -33,6 +33,11 @@ class Connection(ABC):
     def run(self) -> None:
         '''Connection runner implementation'''
 
+    def recv_message(self, buffer: int = 1024) -> tuple[Message, tuple[str, int]]:
+        '''Receive message from socket and return parsed message and address'''
+        msg, peer = self._socket.recvfrom(buffer)
+        return (Message.from_bytes(msg), peer)
+
     def send_message(self, message: Message, ip: str, port: int) -> None:
         '''Send message to specified address'''
         bytes_written: int = self._socket.sendto(message.to_bytes(), (ip, port))
