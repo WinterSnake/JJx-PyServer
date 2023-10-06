@@ -54,16 +54,19 @@ class Client(Connection, User):
             _id = random.randint(0x00000001, 0xFFFFFFFF)
         User.__init__(self, _id, -1, None)  # type: ignore
         self._remote_address: Address | None = None
+        self.connected: bool = False
 
     # -Instance Methods
+    def close(self) -> None:
+        if self.connected:
+            self.disconnect()
+        Connection.close(self)
+
     def on_message(self, message: Message, address: Address) -> None:
         '''Client message event handler'''
-        log_string = f"(Size={len(message)}): [{message}]"
-        if address == self.remote:
-            log_string = "[Server]" + log_string
-        else:
-            log_string = "[Remote]" + log_string
-        LOGGER.info(log_string)
+        if self.index < 0:
+            self._index = message._raw_data[9]
+            LOGGER.info(f"[Client]Set Player Index: {self.index}")
 
     def run(self, ip: str, port: int) -> None:
         '''Run client listener and event handler'''
@@ -73,16 +76,24 @@ class Client(Connection, User):
             self.on_message(message, address)
 
     # -Instance Methods: Protocol
+    def disconnect(self) -> None:
+        '''Send user disconnect message'''
+        self.connected = False
+        msg = Message.disconnect(self.index)
+        bytes_written = self.send(msg, self.remote)
+
     def join(self, ip: str, port: int) -> None:
         '''Send user join request to JJx server'''
         self._remote_address = (ip, port)
         msg = Message.join(self.id)
         bytes_written = self.send(msg, self.remote)
         self.address = self._socket.getsockname()
-        LOGGER.info(f"[Client](Size={len(msg)}): [{msg}] | Sent: {bytes_written} bytes @{self.address[1]}")
 
     # -Properties
     @property
     def remote(self) -> Address:
         assert self._remote_address is not None
         return self._remote_address
+
+    # -Class Properties
+    origin_name = "Client"

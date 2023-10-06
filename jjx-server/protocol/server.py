@@ -44,7 +44,6 @@ class Server(Connection):
 
     def on_message(self, message: Message, address: Address) -> None:
         '''Server message event handler'''
-        LOGGER.info(f"[Remote](Size={len(message)}): [{message}] | @{address[1]}")
         if not self.has_client(address):
             user = User(
                 struct.unpack(">I", message._raw_data[-8:-4])[0],
@@ -65,14 +64,13 @@ class Server(Connection):
     def accept_user_join(self, user: User) -> None:
         '''Accept user join request of client'''
         self._clients.append(user)
-        msg = Message.accept(user.id, user.index)
-        bytes_written = self.send(msg, user.address)
-        LOGGER.info(
-            f"[Server](Size={len(msg)}): [{msg}] | "
-            f"Sent: {bytes_written} bytes @{user.address[1]}"
-        )
+        msg = Message.accept(user.id, 3)
+        self.send(msg, user.address)
 
     # -Properties
     @property
     def clients(self) -> tuple[User, ...]:
         return tuple(self._clients)
+
+    # -Class Properties
+    origin_name = "Server"

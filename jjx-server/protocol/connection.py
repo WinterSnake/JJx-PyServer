@@ -7,13 +7,16 @@
 ##-------------------------------##
 
 ## Imports
-from abc import ABC, abstractmethod
+import logging
 import socket
+from abc import ABC, abstractmethod
+from typing import ClassVar
 
 from .message import Message
 
 ## Constants
 Address = tuple[str, int]
+LOGGER = logging.getLogger(__name__)
 
 
 ## Classes
@@ -39,7 +42,9 @@ class Connection(ABC):
     def recv(self, buffer: int = 1024) -> tuple[Message, Address]:
         '''Returns parsed JJx message and address of peer'''
         msg, address = self._socket.recvfrom(buffer)
-        return (Message.from_bytes(msg), address)
+        message = Message.from_bytes(msg)
+        LOGGER.debug(f"[Remote](Size={len(message)}): [{message}] | @{address}")
+        return (message, address)
 
     @abstractmethod
     def run(self, ip: str, port: int) -> None:
@@ -48,4 +53,12 @@ class Connection(ABC):
 
     def send(self, message: Message, address: Address) -> int:
         '''Send JJx message to peer address'''
-        return self._socket.sendto(message.to_bytes(), address)
+        bytes_written = self._socket.sendto(message.to_bytes(), address)
+        LOGGER.debug(
+            f"[{self.origin_name}](Size={len(message)}): [{message}] "
+            f"| Sent {bytes_written} bytes @{address}"
+        )
+        return bytes_written
+
+    # -Class Properties
+    origin_name: ClassVar[str]

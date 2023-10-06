@@ -48,7 +48,7 @@ class Message:
         _id = struct.pack(">I", player_id)
         ticks = struct.pack(">H", tick)
         raw_data = bytes([
-            0x90, 0x00, ticks[0], ticks[1],
+            0x80, 0x00, ticks[0], ticks[1],
             0x83, 0xFF, 0x00, 0x01,
             0x00, player_index, 0x00, 0x00,
             0x00, 0x00, 0x05, 0x78,
@@ -60,6 +60,17 @@ class Message:
             0x00, 0x00, 0x00, 0x02,
             0x00, 0x00, 0x00, 0x02,
             _id[0], _id[1], _id[2], _id[3],
+        ])
+        return cls(raw_data)
+
+    @classmethod
+    def disconnect(cls, player_index: int, tick: int = 0) -> Message:
+        ''''''
+        ticks = struct.pack(">H", tick)
+        raw_data = bytes([
+            0x80, player_index, ticks[0], ticks[1],
+            0x84, 0xFF, 0x00, 0x04,
+            0x00, 0x00, 0x00, 0x00
         ])
         return cls(raw_data)
 
