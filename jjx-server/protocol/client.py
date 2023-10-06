@@ -44,22 +44,30 @@ class Client(Connection, User):
         if _id == 0:
             _id = random.randint(0x0001, 0xFFFF)
         User.__init__(self, _id, -1, None)  # type: ignore
+        self._remote_address: Address | None = None
 
     # -Instance Methods
+    def on_message(self, message: Message, address: Address) -> None:
+        '''Client message event handler'''
+        if address == self.remote:
+            print(f"[Server](Size={len(message)}): [{message}]")
+
     def run(self, ip: str, port: int) -> None:
         '''Run client listener and event handler'''
-        self._socket.connect((ip, port))
-        self.address = self._socket.getsockname()
+        self.join(ip, port)
         while True:
             message, address = self.recv()
-            self._on_message(message, address)
+            self.on_message(message, address)
 
-    def on_message(cls, message: Message, address: Address) -> None:
-        '''Client message event handler'''
-        if address == self.remote_peer:
-            print(f"[Server](Size={len(message)}): [{message}]")
+    # -Instance Methods: Protocol
+    def join(self, ip: str, port: int) -> None:
+        '''Send join request to JJx server'''
+        self._remote_address = (ip, port)
+        self.send(Message(b''), self.remote)
+        self.address = self._socket.getsockname()
 
     # -Properties
     @property
-    def remote_peer(self) -> Address:
-        return self._socket.getpeername()
+    def remote(self) -> Address:
+        assert self._remote_address is not None
+        return self._remote_address

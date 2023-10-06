@@ -31,6 +31,11 @@ class Connection(ABC):
     def close(self) -> None:
         self._socket.close()
 
+    @abstractmethod
+    def on_message(self, message: Message, address: Address) -> None:
+        '''Connection message event handler'''
+        pass
+
     def recv(self, buffer: int = 1024) -> tuple[Message, Address]:
         '''Returns parsed JJx message and address of peer'''
         msg, address = self._socket.recvfrom(buffer)
@@ -44,8 +49,3 @@ class Connection(ABC):
     def send(self, message: Message, address: Address) -> int:
         '''Send JJx message to peer address'''
         return self._socket.sendto(message.to_bytes(), address)
-
-    @abstractmethod
-    def on_message(self, message: Message, address: Address) -> None:
-        '''Connection message event handler'''
-        pass

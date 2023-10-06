@@ -30,16 +30,16 @@ class Server(Connection):
         self._clients: list[User] = []
 
     # -Instance Methods
+    def on_message(self, message: Message, address: Address) -> None:
+        '''Server message event handler'''
+        print(f"[Client](Size={len(message)}): [{message}]")
+
     def run(self, ip: str, port: int) -> None:
         '''Run server listener and event handler'''
         self._socket.bind((ip, port))
         while True:
             message, address = self.recv()
-            self._on_message(message, address)
-
-    def on_message(self, message: Message, address: Address) -> None:
-        '''Server message event handler'''
-        print(f"[Client](Size={len(message)}): [{message}]")
+            self.on_message(message, address)
 
     # -Properties
     @property
