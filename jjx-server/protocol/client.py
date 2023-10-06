@@ -75,6 +75,10 @@ class Client(Connection, User):
             message, address = self.recv()
             self.on_message(message, address)
 
+    def _on_accept_join(self) -> None:
+        ''''''
+        pass
+
     # -Instance Methods: Protocol
     def disconnect(self) -> None:
         '''Send user disconnect message'''
