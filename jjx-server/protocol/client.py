@@ -42,7 +42,7 @@ class Client(Connection, User):
     def __init__(self, _id: int = 0) -> None:
         Connection.__init__(self)
         if _id == 0:
-            _id = random.randint(0x0001, 0xFFFF)
+            _id = random.randint(0x00000001, 0xFFFFFFFF)
         User.__init__(self, _id, -1, None)  # type: ignore
         self._remote_address: Address | None = None
 
