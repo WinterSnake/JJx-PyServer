@@ -7,25 +7,35 @@
 ## Imports
 import logging
 import sys
+from pathlib import Path
 
 from protocol import Client, Message, Server
 
 ## Constants
-HOST: str = "10.0.1.21"
-PORT: int = 12345
+HOST: str = "10.0.0.135"
+PORT: int = 12344
+USE_LOGGING: bool = True
 LOGCOUNT: int = 0
-LOGPATH: str | None = f"interaction-{LOGCOUNT:0>2}.log"
+LOGPATH: Path | None = None
 
 ## Body
-logging.basicConfig(filename=LOGPATH, level=logging.INFO, format="%(levelname)s:%(message)s")
+# -Configure logging
+while USE_LOGGING:
+    LOGPATH = Path(f"logs/interaction-{LOGCOUNT:0>2}.log")
+    if not LOGPATH.is_file():
+        break
+    LOGCOUNT += 1
+logging.basicConfig(filename=LOGPATH, level=logging.DEBUG, format="%(levelname)s:%(message)s")
+# -Run client
 if len(sys.argv) > 1 and sys.argv[1] in ("-c", "--client"):
     client = Client()
     try:
         client.run(HOST, PORT)
     except KeyboardInterrupt:
         client.close()
+# -Run server
 else:
-    server = Server("Test")
+    server = Server("Example Server")
     print(f"Running server '{server.name}' @ {HOST}:{PORT}")
     try:
         server.run(HOST, PORT)

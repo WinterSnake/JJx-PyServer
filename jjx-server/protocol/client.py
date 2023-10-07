@@ -13,7 +13,6 @@ import random
 from .connection import Address, Connection
 from .message import Message
 
-
 ## Constants
 LOGGER = logging.getLogger(__name__)
 
@@ -83,13 +82,15 @@ class Client(Connection, User):
     def _on_accepted(self) -> None:
         ''''''
         self.connected = True
+        msg = Message.on_accepted(self._protocol_id, self.index)
+        self.send(msg, self.remote)
 
     # -Instance Methods: Protocol
     def disconnect(self) -> None:
         '''Send user disconnect message'''
-        self.connected = False
         msg = Message.disconnect(self._protocol_id, self.index)
         self.send(msg, self.remote)
+        self.connected = False
 
     def join(self, ip: str, port: int) -> None:
         '''Send user join request to JJx server'''

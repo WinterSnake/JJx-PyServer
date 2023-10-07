@@ -43,7 +43,7 @@ class Connection(ABC):
         '''Returns parsed JJx message and address of peer'''
         msg, address = self._socket.recvfrom(buffer)
         message = Message.from_bytes(msg)
-        LOGGER.debug(f"[Remote](Size={len(message)}): [{message}] | @{address}")
+        LOGGER.debug(f"[Remote](Size={len(message):>3}): [{message}] | @{address}")
         return (message, address)
 
     @abstractmethod
@@ -55,7 +55,7 @@ class Connection(ABC):
         '''Send JJx message to peer address'''
         bytes_written = self._socket.sendto(message.to_bytes(), address)
         LOGGER.debug(
-            f"[{self.origin_name}](Size={len(message)}): [{message}] "
+                f"[{self.origin_name}](Size={len(message):>3}): [{message}] "
             f"| Sent {bytes_written} bytes @{address}"
         )
         return bytes_written
