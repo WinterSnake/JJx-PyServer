@@ -26,10 +26,13 @@ class User:
     """
 
     # -Constructor
-    def __init__(self, _id: int, index: int, address: Address) -> None:
+    def __init__(
+        self, _id: int, address: Address, index: int, protocol_id: int
+    ) -> None:
         self.id: int = _id
-        self._index: int = index
         self.address: Address = address
+        self._index: int = index
+        self._protocol_id: int = protocol_id
 
     # -Dunder Methods
     def __str__(self) -> str:
@@ -52,7 +55,7 @@ class Client(Connection, User):
         Connection.__init__(self)
         if _id == 0:
             _id = random.randint(0x00000001, 0xFFFFFFFF)
-        User.__init__(self, _id, -1, None)  # type: ignore
+        User.__init__(self, _id, None, None, None)  # type: ignore
         self._remote_address: Address | None = None
         self.connected: bool = False
 
@@ -64,9 +67,11 @@ class Client(Connection, User):
 
     def on_message(self, message: Message, address: Address) -> None:
         '''Client message event handler'''
-        if self.index < 0:
+        if self._index is None:
+            self._protocol_id = message._raw_data[0]
             self._index = message._raw_data[9]
-            LOGGER.info(f"[Client]Set Player Index: {self.index}")
+            LOGGER.info(f"[Client<Index:{self._index}>] Protocol: 0x{self._protocol_id:0>2X}")
+            self._on_accepted()
 
     def run(self, ip: str, port: int) -> None:
         '''Run client listener and event handler'''
@@ -75,22 +80,22 @@ class Client(Connection, User):
             message, address = self.recv()
             self.on_message(message, address)
 
-    def _on_accept_join(self) -> None:
+    def _on_accepted(self) -> None:
         ''''''
-        pass
+        self.connected = True
 
     # -Instance Methods: Protocol
     def disconnect(self) -> None:
         '''Send user disconnect message'''
         self.connected = False
-        msg = Message.disconnect(self.index)
-        bytes_written = self.send(msg, self.remote)
+        msg = Message.disconnect(self._protocol_id, self.index)
+        self.send(msg, self.remote)
 
     def join(self, ip: str, port: int) -> None:
         '''Send user join request to JJx server'''
         self._remote_address = (ip, port)
         msg = Message.join(self.id)
-        bytes_written = self.send(msg, self.remote)
+        self.send(msg, self.remote)
         self.address = self._socket.getsockname()
 
     # -Properties

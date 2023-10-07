@@ -52,12 +52,12 @@ class Message:
 
     # -Client
     @classmethod
-    def disconnect(cls, player_index: int, tick: int = 0) -> Message:
+    def disconnect(cls, protocol_id: int, player_index: int, tick: int = 0) -> Message:
         ''''''
         ticks = struct.pack(">H", tick)
         raw_data = bytes([
-            0x80, player_index, ticks[0], ticks[1],
-            0x84, 0xFF, 0x00, 0x04,
+            protocol_id, player_index, ticks[0], ticks[1],
+            0x84, 0x00, 0x00, 0x00,
             0x00, 0x00, 0x00, 0x00
         ])
         return cls(raw_data)
