@@ -9,6 +9,7 @@
 ## Imports
 from __future__ import annotations
 import logging
+import socket
 import struct
 
 from .connection import Address, Connection
@@ -28,11 +29,14 @@ class Server(Connection):
     """
 
     # -Constructor
-    def __init__(self, name: str, max_players: int = 4) -> None:
+    def __init__(
+        self, name: str, max_players: int = 4
+    ) -> None:
         super().__init__()
         self.name: str = name
         self.max_players: int = max_players
         self._clients: list[User] = []
+        self._socket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
 
     # -Instance Methods
     def has_client(self, address: Address) -> bool:
@@ -47,8 +51,7 @@ class Server(Connection):
         if not self.has_client(address):
             user = User(
                 struct.unpack(">I", message._raw_data[-8:-4])[0],
-                len(self._clients),
-                address
+                address, 0x80, len(self._clients)
             )
             self.accept_user_join(user)
 
@@ -66,6 +69,16 @@ class Server(Connection):
         self._clients.append(user)
         msg = Message.accept(user.id, 3)
         self.send(msg, user.address)
+
+    def broadcast(self) -> None:
+        '''Broadcast server to JJx WAN/LAN list'''
+        addr = self._socket.getsockname()
+        msg = bytearray([0x4A, 0x4A, 0x41, 0x00, 0x00, 0x05])
+        msg.extend(socket.inet_aton(addr[0]))  # -IP
+        msg.extend(struct.pack("<H", addr[1]))  # -Port
+        msg.extend(bytes(self.name[0:15], 'utf-8'))  # -Name
+        msg.extend(bytes(28 - len(msg)))
+        self._socket.sendto(bytes(msg), ("255.255.255.255", 12346))
 
     # -Properties
     @property
