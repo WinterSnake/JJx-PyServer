@@ -13,7 +13,7 @@ from protocol import Client, Message, Server
 
 ## Constants
 HOST: str = "10.0.0.135"
-PORT: int = 12344
+PORT: int = 12345
 USE_LOGGING: bool = True
 LOGCOUNT: int = 0
 LOGPATH: Path | None = None

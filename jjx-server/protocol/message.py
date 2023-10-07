@@ -10,8 +10,10 @@
 from __future__ import annotations
 from enum import Enum
 import struct
+import socket
 
 from .chunk import Chunk
+from version import Version
 
 
 ## Classes
@@ -22,8 +24,8 @@ class Message:
     """
 
     # -Constructor
-    def __init__(self, raw_data: bytes, tick: int = 0) -> None:
-        self.tick: int = tick
+    def __init__(self, raw_data: bytes, tick: int | None = None) -> None:
+        self.tick: int | None = tick
         self._chunks: list[Chunk] = []
         self._raw_data: bytes = raw_data
 
@@ -83,14 +85,41 @@ class Message:
         return cls(raw_data, tick)
 
     @classmethod
-    def on_accepted(cls, protocol_id: int, player_index: int, name: str, tick: int = 0) -> Message:
+    def on_accepted_0(cls, protocol_id: int, player_index: int, tick: int = 0) -> Message:
+        ''''''
         raw_data = bytes([
+            protocol_id, player_index, 0x00, 0x00,
+            0x01, 0xFF, 0x00, 0x01,
+            0x00, 0x01, 0x00, 0x00,
+            0x85, 0xFF, 0x00, 0x02
+        ])
+        return cls(raw_data, tick)
+
+    @classmethod
+    def on_accepted_1(cls, protocol_id: int, player_index: int, tick: int = 0) -> Message:
+        ''''''
+        raw_data = bytes([
+            protocol_id, player_index, 0x00, 0x00,
+            0x85, 0xFF, 0x00, 0x02
+        ])
+        return cls(raw_data, tick)
+
+    @classmethod
+    def client_info(
+        cls, protocol_id: int, player_index: int,
+        name: str, version: Version, tick: int = 0
+    ) -> Message:
+        data = bytearray([
             protocol_id, player_index, 0x00, 0x00,
             0x86, 0x00, 0x00, 0x01,
             0x00, 0x27, 0x00, 0x02,
             0xC2
         ])
-        return cls(raw_data, tick)
+        _name = bytearray(bytes(name, 'utf-8'))
+        _name.extend(bytes(32 - len(_name)))
+        data += _name
+        data.extend(struct.pack("<I", version))
+        return cls(bytes(data), tick)
 
     # -Server
     @classmethod
@@ -112,3 +141,12 @@ class Message:
             _id[0], _id[1], _id[2], _id[3],
         ])
         return cls(raw_data, tick)
+
+    @classmethod
+    def broadcast(cls, ip: str, port: int, name: str) -> Message:
+        msg = bytearray([0x4A, 0x4A, 0x41, 0x00, 0x00, 0x05])
+        msg.extend(socket.inet_aton(ip))  # -IP
+        msg.extend(struct.pack("<H", port))  # -Port
+        msg.extend(bytes(name, 'utf-8'))  # -Name
+        msg.extend(bytes(28 - len(msg)))
+        return cls(bytes(msg))

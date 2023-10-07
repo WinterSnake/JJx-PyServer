@@ -12,6 +12,7 @@ import random
 
 from .connection import Address, Connection
 from .message import Message
+from version import Version
 
 ## Constants
 LOGGER = logging.getLogger(__name__)
@@ -57,6 +58,8 @@ class Client(Connection, User):
         User.__init__(self, _id, None, None, None)  # type: ignore
         self._remote_address: Address | None = None
         self.connected: bool = False
+        self.name: str = "Test"
+        self.version: Version = Version.Latest
 
     # -Instance Methods
     def close(self) -> None:
@@ -82,8 +85,11 @@ class Client(Connection, User):
     def _on_accepted(self) -> None:
         ''''''
         self.connected = True
-        msg = Message.on_accepted(self._protocol_id, self.index)
+        msg = Message.on_accepted_0(self._protocol_id, self.index)
         self.send(msg, self.remote)
+        #self.send_info()
+        #msg = Message.on_accepted_1(self._protocol_id, self.index)
+        #self.send(msg, self.remote)
 
     # -Instance Methods: Protocol
     def disconnect(self) -> None:
@@ -98,6 +104,11 @@ class Client(Connection, User):
         msg = Message.join(self.id)
         self.send(msg, self.remote)
         self.address = self._socket.getsockname()
+
+    def send_info(self) -> None:
+        '''Send client name and version'''
+        msg = Message.client_info(self._protocol_id, self.index, self.name, self.version)
+        self.send(msg, self.remote)
 
     # -Properties
     @property
