@@ -8,7 +8,7 @@
 
 ## Imports
 from __future__ import annotations
-from enum import Enum
+from enum import IntEnum
 import struct
 
 
@@ -38,7 +38,7 @@ class Chunk:
         return bytes(chunk)
 
     # -Sub-Classes
-    class Type(Enum):
+    class Type(IntEnum):
         """
         Message Chunk Type
         """
