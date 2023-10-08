@@ -12,7 +12,7 @@ import struct
 from typing import Any
 
 from .base import Message
-from version import Version
+from ...version import Version
 
 
 ## Classes

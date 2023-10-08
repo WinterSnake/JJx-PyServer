@@ -7,6 +7,7 @@
 ##-------------------------------##
 
 ## Imports
+import logging
 from abc import ABC, abstractmethod
 from collections.abc import Callable
 from typing import Any, Type
@@ -14,10 +15,12 @@ from typing import Any, Type
 from enet import Host, Peer  # type: ignore
 
 from .messages import Message, parse as message_parse
-from version import Version
+from ..version import Version
 
 ## Constants
 EventHandler = Callable[[Any], None]
+LOGGER = logging.getLogger(__name__)
+CHANNELS: int = 2
 
 
 ## Classes
@@ -42,18 +45,18 @@ class Connection(ABC):
             event = self.host.service(0)
             # -Connected
             if event.type == 1:
-                print("Handling connect..")
+                self._on_connected(event.peer)
             # -Disconnected
             elif event.type == 2:
-                print("Handling disconnect..")
+                self._on_disconnected(event.peer)
             # -Receive
             if event.type == 3:
-                print("Handling received message..")
                 message = message_parse(event.packet.data)
                 self._on_message(event.peer, message)
 
-    def subscribe_message(self, message: Type[Message], handle) -> None:
+    def subscribe_message(self, message: Type[Message], handle: EventHandler) -> None:
         '''Add a function callback for message handling'''
+        LOGGER.debug(f"Adding {handle.__name__} for '{message}' event")
         if message in self._events:
             self._events[message].append(handle)
         else:
@@ -61,23 +64,26 @@ class Connection(ABC):
 
     def _on_message(self, peer: Peer, message: Message) -> None:
         '''Call appropriate event handlers for message and pass message parameters'''
-        if type(message) not in self._events:
+        msg_type = type(message)
+        if msg_type not in self._events:
+            LOGGER.debug(f"No event handlers for '{msg_type}'")
             return
-        print("Found event..")
-        for handle in self._events[type(message)]:
-            print(handle)
+        for handle in self._events[msg_type]:
             args = message.to_args()
+            LOGGER.debug(
+                f"Calling {handle.__name__}("
+                f"{','.join(str(arg) for arg in args)})"
+            )
             if args:
                 handle(*args, peer)  # type: ignore
             else:
                 handle(peer)  # type: ignore
 
-    # -Instance Methods: API
     @abstractmethod
-    def on_connected(self, peer: Peer) -> None: ...
+    def _on_connected(self, peer: Peer) -> None: ...
 
     @abstractmethod
-    def on_disconnected(self, peer: Peer) -> None: ...
+    def _on_disconnected(self, peer: Peer) -> None: ...
 
     # -Properties
     @property

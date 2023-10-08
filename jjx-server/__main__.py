@@ -9,7 +9,8 @@ import logging
 import sys
 from pathlib import Path
 
-from protocol import Client, Message, Server
+from .protocol import Client, Server
+from .version import Version
 
 ## Constants
 HOST: str = "10.0.0.135"
@@ -25,10 +26,10 @@ while USE_LOGGING:
     if not LOGPATH.is_file():
         break
     LOGCOUNT += 1
-logging.basicConfig(filename=LOGPATH, level=logging.DEBUG, format="%(levelname)s:%(message)s")
+logging.basicConfig(filename=LOGPATH, level=logging.DEBUG, format="[%(levelname)s]%(message)s")
 # -Run client
 if len(sys.argv) > 1 and sys.argv[1] in ("-c", "--client"):
-    client = Client()
+    client = Client("Test Debug")
     try:
         client.run(HOST, PORT)
     except KeyboardInterrupt:
