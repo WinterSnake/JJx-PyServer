@@ -7,58 +7,80 @@
 ##-------------------------------##
 
 ## Imports
-import logging
-import socket
 from abc import ABC, abstractmethod
-from typing import ClassVar
+from collections.abc import Callable
+from typing import Any, Type
 
-from .message import Message
+from enet import Host, Peer  # type: ignore
+
+from .messages import Message, parse as message_parse
+from version import Version
 
 ## Constants
-Address = tuple[str, int]
-LOGGER = logging.getLogger(__name__)
+EventHandler = Callable[[Any], None]
 
 
 ## Classes
 class Connection(ABC):
     """
     JJx: Base Connection
-        Holds the socket and methods to interact between clients and server
     """
 
     # -Constructor
-    def __init__(self) -> None:
-        self._socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    def __init__(self, host: Host | None) -> None:
+        self._host: Host | None = host
+        self._events: dict[Type[Message], list[EventHandler]] = {}
 
     # -Instance Methods
-    def close(self) -> None:
-        self._socket.close()
-
     @abstractmethod
-    def on_message(self, message: Message, address: Address) -> None:
-        '''Connection message event handler'''
-        pass
-
-    def recv(self, buffer: int = 1024) -> tuple[Message, Address]:
-        '''Returns parsed JJx message and address of peer'''
-        msg, address = self._socket.recvfrom(buffer)
-        message = Message.from_bytes(msg)
-        LOGGER.debug(f"[Remote](Size={len(message):>3}): [{message}] | @{address}")
-        return (message, address)
+    def close(self) -> None: ...
 
     @abstractmethod
     def run(self, ip: str, port: int) -> None:
-        '''Runs connection's listener and event handler'''
-        pass
+        '''Run enet event loop and pass events to handlers'''
+        while True:
+            event = self.host.service(0)
+            # -Connected
+            if event.type == 1:
+                print("Handling connect..")
+            # -Disconnected
+            elif event.type == 2:
+                print("Handling disconnect..")
+            # -Receive
+            if event.type == 3:
+                print("Handling received message..")
+                message = message_parse(event.packet.data)
+                self._on_message(event.peer, message)
 
-    def send(self, message: Message, address: Address) -> int:
-        '''Send JJx message to peer address'''
-        bytes_written = self._socket.sendto(message.to_bytes(), address)
-        LOGGER.debug(
-                f"[{self.origin_name}](Size={len(message):>3}): [{message}] "
-            f"| Sent {bytes_written} bytes @{address}"
-        )
-        return bytes_written
+    def subscribe_message(self, message: Type[Message], handle) -> None:
+        '''Add a function callback for message handling'''
+        if message in self._events:
+            self._events[message].append(handle)
+        else:
+            self._events[message] = [handle]
 
-    # -Class Properties
-    origin_name: ClassVar[str]
+    def _on_message(self, peer: Peer, message: Message) -> None:
+        '''Call appropriate event handlers for message and pass message parameters'''
+        if type(message) not in self._events:
+            return
+        print("Found event..")
+        for handle in self._events[type(message)]:
+            print(handle)
+            args = message.to_args()
+            if args:
+                handle(*args, peer)  # type: ignore
+            else:
+                handle(peer)  # type: ignore
+
+    # -Instance Methods: API
+    @abstractmethod
+    def on_connected(self, peer: Peer) -> None: ...
+
+    @abstractmethod
+    def on_disconnected(self, peer: Peer) -> None: ...
+
+    # -Properties
+    @property
+    def host(self) -> Host:
+        assert self._host is not None
+        return self._host
