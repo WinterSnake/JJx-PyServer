@@ -35,7 +35,8 @@ class Client(Connection):
 
     # -Instance Methods
     def close(self) -> None:
-        pass
+        if self.connect:
+            self.disconnect(immediate=True)
 
     def run(self, ip: str, port: int) -> None:
         '''Connect to server and run enet loop for handling server messages'''
@@ -55,9 +56,11 @@ class Client(Connection):
         self.close()
 
     # -Instance Methods: API
-    def disconnect(self) -> None:
+    def disconnect(self, immediate: bool = False) -> None:
         '''Disconnect peer from server'''
         self.connection.disconnect()
+        if immediate:
+            self._host.flush()
 
     def send_client_info(self) -> None:
         '''Send client information to the server'''
@@ -68,6 +71,10 @@ class Client(Connection):
     def on_disconnected(self) -> None: ...
 
     # -Properties
+    @property
+    def connected(self) -> bool:
+        return self.connection.state == 5
+
     @property
     def connection(self) -> Peer:
         '''Returns server peer'''
