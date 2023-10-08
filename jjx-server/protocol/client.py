@@ -12,6 +12,7 @@ import logging
 from enet import Address, Host, Peer  # type: ignore
 
 from .connection import CHANNELS, Connection
+from .messages import ClientInfoMessage
 from ..version import Version
 
 ## Constants
@@ -44,6 +45,7 @@ class Client(Connection):
     def _on_connected(self, peer: Peer) -> None:
         '''Log server peer info'''
         LOGGER.info(f"Client connected to {peer.address}")
+        self.send_client_info()
         self.on_connected()
 
     def _on_disconnected(self, peer: Peer) -> None:
@@ -57,6 +59,11 @@ class Client(Connection):
         '''Disconnect peer from server'''
         self.connection.disconnect()
 
+    def send_client_info(self) -> None:
+        '''Send client information to the server'''
+        msg = ClientInfoMessage(self.name, self.version)
+        self.send(msg, self.connection)
+
     def on_connected(self) -> None: ...
     def on_disconnected(self) -> None: ...
 
@@ -64,4 +71,4 @@ class Client(Connection):
     @property
     def connection(self) -> Peer:
         '''Returns server peer'''
-        return self._host.peers
+        return self._host.peers[0]

@@ -12,15 +12,15 @@ from abc import ABC, abstractmethod
 from collections.abc import Callable
 from typing import Any, Type
 
-from enet import Host, Peer  # type: ignore
+from enet import Host, Packet, Peer  # type: ignore
 
-from .messages import Message, parse as message_parse
+from .messages import Message, _bytes_to_hex_string, parse as message_parse
 from ..version import Version
 
 ## Constants
 EventHandler = Callable[[Any], None]
 LOGGER = logging.getLogger(__name__)
-CHANNELS: int = 2
+CHANNELS: int = 0
 
 
 ## Classes
@@ -51,8 +51,24 @@ class Connection(ABC):
                 self._on_disconnected(event.peer)
             # -Receive
             if event.type == 3:
+                data = _bytes_to_hex_string(event.packet.data)
+                LOGGER.debug(f"Received message '{data}' via channel[{event.channelID}]")
                 message = message_parse(event.packet.data)
                 self._on_message(event.peer, message)
+
+    def send(
+        self, message: Message, peer: Peer,
+        channel_id: int = 0, immediate: bool = False
+    ) -> None:
+        '''Covert message to enet packet and send to peer channel'''
+        msg = message.to_bytes()
+        LOGGER.debug(
+            f"Sending '{_bytes_to_hex_string(msg)}' to peer "
+            f"@{peer.address} via channel[{channel_id}]"
+        )
+        peer.send(channel_id, Packet(msg))
+        if immediate:
+            self.host.flush()
 
     def subscribe_message(self, message: Type[Message], handle: EventHandler) -> None:
         '''Add a function callback for message handling'''

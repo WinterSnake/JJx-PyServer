@@ -58,7 +58,7 @@ class Server(Connection):
 
     def _on_client_info(self, name: str, version: Version, peer: Peer) -> None:
         ''''''
-        LOGGER.info("Event: OnClientInfo")
+        LOGGER.info(f"Event: OnClientInfo[name: {name} | version: {version}")
         self.on_client_info(name, version, peer)
 
     # -Instance Methods: API
