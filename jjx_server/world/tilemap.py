@@ -21,7 +21,7 @@ class TileMap:
 
     # -Constructor
     def __init__(self, size: tuple[int, int]) -> None:
-        self.size: tuple[int, int] = size
+        self._size: tuple[int, int] = size
 
     # -Dunder Methods
     def __len__(self) -> int:
@@ -35,14 +35,16 @@ class TileMap:
         return b''
 
     @classmethod
-    def from_bytes(cls, compressed: bool = True) -> TileMap:
+    def from_bytes(
+        cls, data: bytes, size: tuple[int, int], compressed: bool = True
+    ) -> TileMap:
         return cls((0, 0))
 
     # -Properties
     @property
     def height(self) -> int:
-        return self.size[0]
+        return self._size[0]
 
     @property
     def width(self) -> int:
-        return self.size[1]
+        return self._size[1]

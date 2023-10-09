@@ -69,8 +69,8 @@ class WorldInfoMessage(Message):
         message.extend(struct.pack("<HH", *self.world_size))
         message.extend(struct.pack("<HH", *self.spawn_position))
         message.extend(struct.pack("<HH", *self.player_position))
-        message.extend(self.time.ticks.to_bytes(4, byteorder='little'))
-        message.append(self.time.phase.value)
+        message.extend(self.world_time.ticks.to_bytes(4, byteorder='little'))
+        message.append(self.world_time.phase.value)
         message.extend([0x01, 0x00])  # ---UNKNOWN
         message.extend(self.planet_1.value.to_bytes(4, byteorder='little'))
         message.append(0x02)  # ---UNKNONW
@@ -82,7 +82,7 @@ class WorldInfoMessage(Message):
             self.language.encode('ascii') if self.language else [0xFF, 0xFF]
         )
         message.extend([0x00, 0x00])  # ---UNKNOWN
-        message.extend(self.world_size_in_bytes)
+        message.extend(self.world_size_in_bytes.to_bytes(4, byteorder='little'))
         return bytes(message)
 
     # -Class Methods

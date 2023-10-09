@@ -15,7 +15,6 @@ from .connection import CHANNELS, Connection
 from .messages import (
     AcceptMessage, ClientInfoMessage,
     WorldInfoMessage, WorldInfoRequestMessage,
-    UnknownMessage,
 )
 from ..version import Version
 

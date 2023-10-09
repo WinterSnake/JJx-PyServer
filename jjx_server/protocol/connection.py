@@ -52,7 +52,7 @@ class Connection(ABC):
             # -Receive
             if event.type == 3:
                 data = _bytes_to_hex_string(event.packet.data)
-                LOGGER.debug(f"Received message '{data}' via channel[{event.channelID}]")
+                LOGGER.debug(f"Received message '{data}' via channel[{event.channelID}] : Flags: {event.packet.flags}")
                 message = message_parse(event.packet.data)
                 self._on_message(event.peer, message)
 

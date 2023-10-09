@@ -74,7 +74,7 @@ class World:
     # -Properties
     @property
     def height(self) -> int:
-        return 0
+        return self._size[0]
 
     @property
     def size(self) -> tuple[int, int]:
@@ -82,4 +82,4 @@ class World:
 
     @property
     def width(self) -> int:
-        return 0
+        return self._size[1]

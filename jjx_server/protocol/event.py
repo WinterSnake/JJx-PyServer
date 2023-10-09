@@ -13,6 +13,7 @@ from typing import Protocol, overload, runtime_checkable
 from enet import Peer  # type: ignore
 
 from ..version import Version
+from ..world import World
 
 
 ## Classes
@@ -26,6 +27,8 @@ class EventHandler(Protocol):
     def __call__(self, code: int, peer: Peer) -> None: ...
     @overload
     def __call__(self, name: str, version: Version, peer: Peer) -> None: ...
+    @overload
+    def __call__(self, world: World, peer: Peer) -> None: ...
 
     # -Properties
     __name__: str

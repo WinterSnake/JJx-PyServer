@@ -14,11 +14,11 @@ from enet import Address, Host, Peer  # type: ignore
 from .connection import CHANNELS, Connection
 from .messages import (
     AcceptMessage, ClientInfoMessage,
-    WorldInfoMessage, WorldInfoRequestMessage,
-    UnknownMessage,
+    WorldDataMessage, WorldInfoMessage, WorldInfoRequestMessage,
+    Unknown1Message,
 )
 from ..version import Version
-from ..world import Planet, World
+from ..world import Planet, TileMap, World
 
 ## Constants
 LOGGER = logging.getLogger(__name__)
@@ -37,9 +37,11 @@ class Client(Connection):
         super().__init__(Host(None, 1, CHANNELS))
         self.name: str = name
         self.version: Version = version
+        self._world: World | None = None
         # -Event Subscriptions
         self.subscribe_message(AcceptMessage, self._on_accepted)
         self.subscribe_message(WorldInfoMessage, self._on_world_info)
+        self.subscribe_message(WorldDataMessage, self._on_world_data)
 
     # -Instance Methods
     def close(self) -> None:
@@ -67,9 +69,19 @@ class Client(Connection):
         self.on_disconnected()
         self.close()
 
+    def _on_world_data(self, data: bytes, peer: Peer) -> None:
+        ''''''
+        self.world.blocks = TileMap.from_bytes(data, self.world.size, compressed=True)
+        self.on_world_data(self.world.blocks)
+
     def _on_world_info(self, world: World, planet: Planet, peer: Peer) -> None:
         ''''''
-        self.on_world_info(world, planet, peer)
+        self._world = world
+        self.on_world_info(world, planet)
+
+    def _on_unknown1(self, data: bytes, peer: Peer) -> None:
+        ''''''
+        LOGGER.warn(f"Unknown compressed data: {data!r}")
 
     # -Instance Methods: API
     def disconnect(self, immediate: bool = False) -> None:
@@ -90,7 +102,8 @@ class Client(Connection):
 
     def on_connected(self) -> None: ...
     def on_disconnected(self) -> None: ...
-    def on_world_info(self, world: World, planet: Planet, peer: Peer) -> None: ...
+    def on_world_info(self, world: World, planet: Planet) -> None: ...
+    def on_world_data(self, tilemap: TileMap) -> None: ...
 
     # -Properties
     @property
@@ -101,3 +114,8 @@ class Client(Connection):
     def connection(self) -> Peer:
         '''Returns server peer'''
         return self.host.peers[0]
+
+    @property
+    def world(self) -> World:
+        assert self._world is not None
+        return self._world

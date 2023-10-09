@@ -18,34 +18,33 @@ from ...world import (
 
 
 ## Classes
-class Unknown1Message(Message):
+class WorldDataMessage(Message):
     """
-    JJx Message: Unknown 1
-        - Is compressed
+    JJx Message: World Data
     """
 
     # -Constructor
     def __init__(self, data: bytes) -> None:
-        self.unknown_data: bytes = data
+        self.world_data: bytes = data
 
     def __len__(self) -> int:
         return len(self.to_bytes())
 
     def __str__(self) -> str:
-        return "WorldUnknown1"
+        return "WorldData"
 
     # -Instance Methods
     def to_args(self) -> tuple[bytes]:
-        return (self.unknown_data,)
+        return (self.world_data,)
 
 
     def to_bytes(self) -> bytes:
-        return self.unknown_data
+        return self.world_data
 
     # -Class Methods
     @classmethod
-    def from_bytes(cls, data: bytes) -> Unknown1Message:
+    def from_bytes(cls, data: bytes) -> WorldDataMessage:
         return cls(data)
 
     # -Class Properties
-    opcode = 0x034C
+    opcode = 0x0347
