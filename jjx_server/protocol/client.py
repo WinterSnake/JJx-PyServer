@@ -13,7 +13,8 @@ from enet import Address, Host, Peer  # type: ignore
 
 from .connection import CHANNELS, Connection
 from .messages import (
-    AcceptMessage, ClientInfoMessage, UnknownMessage
+    AcceptMessage, ClientInfoMessage,
+    WorldInfoMessage, UnknownMessage,
 )
 from ..version import Version
 
@@ -49,8 +50,7 @@ class Client(Connection):
 
     def _on_accepted(self, code: int, peer) -> None:
         '''Client accepted into server event'''
-        print(f"Code: {code}")
-        msg = UnknownMessage()
+        msg = WorldInfoMessage()
         self.send(msg, peer)
 
     def _on_connected(self, peer: Peer) -> None:

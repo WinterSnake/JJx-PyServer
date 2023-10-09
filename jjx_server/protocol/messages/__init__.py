@@ -10,6 +10,7 @@ import struct
 from .base import Message
 from .accept import AcceptMessage
 from .clientinfo import ClientInfoMessage
+from .worldinfo import WorldInfoMessage
 from .unknown import UnknownMessage
 
 ## Constants
@@ -34,6 +35,8 @@ def parse(data: bytes) -> Message:
             return ClientInfoMessage.from_bytes(data)
         case AcceptMessage.opcode:
             return AcceptMessage.from_bytes(data)
+        case WorldInfoMessage.opcode:
+            return WorldInfoMessage.from_bytes(data)
         case UnknownMessage.opcode:
             return UnknownMessage.from_bytes(data)
         case _:

@@ -13,7 +13,8 @@ from enet import Address, Host, Peer  # type: ignore
 
 from .connection import CHANNELS, Connection
 from .messages import (
-    AcceptMessage, ClientInfoMessage
+    AcceptMessage, ClientInfoMessage,
+    WorldInfoMessage, UnknownMessage,
 )
 from ..version import Version
 

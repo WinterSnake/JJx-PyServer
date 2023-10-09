@@ -63,8 +63,8 @@ class Connection(ABC):
         '''Covert message to enet packet and send to peer channel'''
         msg = message.to_bytes()
         LOGGER.debug(
-            f"Sending '{_bytes_to_hex_string(msg)}' to peer "
-            f"@{peer.address} via channel[{channel_id}]"
+            f"Sending '{type(message).__name__}' to peer @{peer.address} "
+            f"via channel[{channel_id}] || Data: {_bytes_to_hex_string(msg)}"
         )
         peer.send(channel_id, Packet(msg))
         if immediate:
@@ -74,7 +74,7 @@ class Connection(ABC):
         self, message: Type[Message], handle: Callable[..., None]
     ) -> None:
         '''Add a function callback for message handling'''
-        LOGGER.debug(f"Adding {handle.__name__} for '{message}' event")
+        LOGGER.debug(f"Adding {handle.__name__} for '{message.__name__}' event")
         assert isinstance(handle, EventHandler)
         if message in self._events:
             self._events[message].append(handle)
@@ -85,7 +85,7 @@ class Connection(ABC):
         '''Call appropriate event handlers for message and pass message parameters'''
         msg_type = type(message)
         if msg_type not in self._events:
-            LOGGER.debug(f"No event handlers for '{msg_type}'")
+            LOGGER.debug(f"No event handlers for '{msg_type.__name__}'")
             return
         for handle in self._events[msg_type]:
             args = message.to_args()
