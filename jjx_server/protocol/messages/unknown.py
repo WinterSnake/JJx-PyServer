@@ -43,4 +43,4 @@ class UnknownMessage(Message):
         return cls()
 
     # -Class Properties
-    opcode = 0x0343
+    opcode = 0x0000

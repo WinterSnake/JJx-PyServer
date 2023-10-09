@@ -18,7 +18,7 @@ from .messages import (
     UnknownMessage,
 )
 from ..version import Version
-from ..world import World
+from ..world import Planet, World
 
 ## Constants
 LOGGER = logging.getLogger(__name__)
@@ -67,9 +67,9 @@ class Client(Connection):
         self.on_disconnected()
         self.close()
 
-    def _on_world_info(self, world: World) -> None:
+    def _on_world_info(self, world: World, planet: Planet, peer: Peer) -> None:
         ''''''
-        pass
+        self.on_world_info(world, planet, peer)
 
     # -Instance Methods: API
     def disconnect(self, immediate: bool = False) -> None:
@@ -90,6 +90,7 @@ class Client(Connection):
 
     def on_connected(self) -> None: ...
     def on_disconnected(self) -> None: ...
+    def on_world_info(self, world: World, planet: Planet, peer: Peer) -> None: ...
 
     # -Properties
     @property
