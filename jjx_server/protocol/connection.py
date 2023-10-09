@@ -10,15 +10,15 @@
 import logging
 from abc import ABC, abstractmethod
 from collections.abc import Callable
-from typing import Any, Type
+from typing import Type, cast
 
 from enet import Host, Packet, Peer  # type: ignore
 
 from .messages import Message, _bytes_to_hex_string, parse as message_parse
+from .event import EventHandler
 from ..version import Version
 
 ## Constants
-EventHandler = Callable[[Any], None]
 LOGGER = logging.getLogger(__name__)
 CHANNELS: int = 0
 
@@ -70,9 +70,12 @@ class Connection(ABC):
         if immediate:
             self.host.flush()
 
-    def subscribe_message(self, message: Type[Message], handle: EventHandler) -> None:
+    def subscribe_message(
+        self, message: Type[Message], handle: Callable[..., None]
+    ) -> None:
         '''Add a function callback for message handling'''
         LOGGER.debug(f"Adding {handle.__name__} for '{message}' event")
+        assert isinstance(handle, EventHandler)
         if message in self._events:
             self._events[message].append(handle)
         else:
@@ -86,14 +89,15 @@ class Connection(ABC):
             return
         for handle in self._events[msg_type]:
             args = message.to_args()
-            LOGGER.debug(
-                f"Calling {handle.__name__}("
-                f"{','.join(str(arg) for arg in args)})"
-            )
+            log_string = f"Calling {handle.__name__}("
+            if args:
+                log_string += ','.join(str(arg) for arg in args)
+            log_string += ')'
+            LOGGER.debug(log_string)
             if args:
                 handle(*args, peer)  # type: ignore
             else:
-                handle(peer)  # type: ignore
+                handle(peer)
 
     @abstractmethod
     def _on_connected(self, peer: Peer) -> None: ...

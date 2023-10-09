@@ -3,7 +3,7 @@
 ## Junk Jack X: Protocol         ##
 ## Written By: Ryan Smith        ##
 ##-------------------------------##
-## Message: Accept               ##
+## Message: Unknown              ##
 ##-------------------------------##
 
 ## Imports
@@ -41,7 +41,7 @@ class UnknownMessage(Message):
 
     # -Class Methods
     @classmethod
-    def from_bytes(cls, data: bytes) -> AcceptMessage:
+    def from_bytes(cls, data: bytes) -> UnknownMessage:
         return cls()
 
     # -Class Properties

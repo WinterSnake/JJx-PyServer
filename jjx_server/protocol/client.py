@@ -39,7 +39,7 @@ class Client(Connection):
 
     # -Instance Methods
     def close(self) -> None:
-        if self.connect:
+        if self.connected:
             self.disconnect(immediate=True)
 
     def run(self, ip: str, port: int) -> None:
@@ -70,7 +70,7 @@ class Client(Connection):
         '''Disconnect peer from server'''
         self.connection.disconnect()
         if immediate:
-            self._host.flush()
+            self.host.flush()
 
     def send_client_info(self) -> None:
         '''Send client information to the server'''
@@ -88,4 +88,4 @@ class Client(Connection):
     @property
     def connection(self) -> Peer:
         '''Returns server peer'''
-        return self._host.peers[0]
+        return self.host.peers[0]
