@@ -36,7 +36,7 @@ class ClientInfoMessage(Message):
         return (self.name, self.version)
 
     def to_bytes(self) -> bytes:
-        message = bytearray(struct.pack(">HB", ClientInfoMessage.opcode, 0x9f))
+        message = bytearray(struct.pack(">HB", self.opcode, 0x9f))
         name = bytearray(self.name.encode('ascii'))
         name.extend(bytearray(32 - len(name)))
         message.extend(name)

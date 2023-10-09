@@ -12,7 +12,9 @@ import logging
 from enet import Address, Host, Peer  # type: ignore
 
 from .connection import CHANNELS, Connection
-from .messages import ClientInfoMessage
+from .messages import (
+    AcceptMessage, ClientInfoMessage, UnknownMessage
+)
 from ..version import Version
 
 ## Constants
@@ -32,6 +34,8 @@ class Client(Connection):
         super().__init__(Host(None, 1, CHANNELS))
         self.name: str = name
         self.version: Version = version
+        # -Event Subscriptions
+        self.subscribe_message(AcceptMessage, self._on_accepted)
 
     # -Instance Methods
     def close(self) -> None:
@@ -42,6 +46,12 @@ class Client(Connection):
         '''Connect to server and run enet loop for handling server messages'''
         self._peer = self.host.connect(Address(ip.encode('utf-8'), port), CHANNELS)
         super().run(ip, port)
+
+    def _on_accepted(self, code: int, peer) -> None:
+        '''Client accepted into server event'''
+        print(f"Code: {code}")
+        msg = UnknownMessage()
+        self.send(msg, peer)
 
     def _on_connected(self, peer: Peer) -> None:
         '''Log server peer info'''

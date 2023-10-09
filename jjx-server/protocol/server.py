@@ -12,7 +12,9 @@ import logging
 from enet import Address, Host, Peer  # type: ignore
 
 from .connection import CHANNELS, Connection
-from .messages import ClientInfoMessage
+from .messages import (
+    AcceptMessage, ClientInfoMessage
+)
 from ..version import Version
 
 ## Constants
@@ -59,9 +61,15 @@ class Server(Connection):
     def _on_client_info(self, name: str, version: Version, peer: Peer) -> None:
         ''''''
         LOGGER.info(f"Event: OnClientInfo[name: {name} | version: {version}")
+        self.accept(peer)
         self.on_client_info(name, version, peer)
 
     # -Instance Methods: API
+    def accept(self, peer: Peer) -> None:
+        '''Accept connecting client into server'''
+        msg = AcceptMessage(1)
+        self.send(msg, peer)
+
     def on_connected(self, peer: Peer) -> None: ...
     def on_client_info(self, name: str, version: Version, peer: Peer) -> None: ...
     def on_disconnected(self, peer: Peer) -> None: ...

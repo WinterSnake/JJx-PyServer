@@ -8,11 +8,13 @@
 import struct
 
 from .base import Message
+from .accept import AcceptMessage
 from .clientinfo import ClientInfoMessage
+from .unknown import UnknownMessage
 
 ## Constants
 __all__: tuple[str, ...] = (
-    "ClientInfoMessage",
+    "AcceptMessage", "ClientInfoMessage",
     "parse",
 )
 
@@ -30,6 +32,10 @@ def parse(data: bytes) -> Message:
     match header:
         case ClientInfoMessage.opcode:
             return ClientInfoMessage.from_bytes(data)
+        case AcceptMessage.opcode:
+            return AcceptMessage.from_bytes(data)
+        case UnknownMessage.opcode:
+            return UnknownMessage.from_bytes(data)
         case _:
             p_data = _bytes_to_hex_string(data)
             raise NotImplementedError(f"Unknown header: {header} | data: {p_data}")
