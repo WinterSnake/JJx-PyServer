@@ -18,6 +18,7 @@ from ...version import Version
 ## Classes
 class ClientInfoMessage(Message):
     """
+    JJx Message: Client Info
     """
 
     # -Constructor

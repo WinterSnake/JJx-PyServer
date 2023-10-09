@@ -14,9 +14,11 @@ from enet import Address, Host, Peer  # type: ignore
 from .connection import CHANNELS, Connection
 from .messages import (
     AcceptMessage, ClientInfoMessage,
-    WorldInfoMessage, UnknownMessage,
+    WorldInfoMessage, WorldInfoRequestMessage,
+    UnknownMessage,
 )
 from ..version import Version
+from ..world import World
 
 ## Constants
 LOGGER = logging.getLogger(__name__)
@@ -37,6 +39,7 @@ class Client(Connection):
         self.version: Version = version
         # -Event Subscriptions
         self.subscribe_message(AcceptMessage, self._on_accepted)
+        self.subscribe_message(WorldInfoMessage, self._on_world_info)
 
     # -Instance Methods
     def close(self) -> None:
@@ -50,8 +53,7 @@ class Client(Connection):
 
     def _on_accepted(self, code: int, peer) -> None:
         '''Client accepted into server event'''
-        msg = WorldInfoMessage()
-        self.send(msg, peer)
+        self.request_world_info()
 
     def _on_connected(self, peer: Peer) -> None:
         '''Log server peer info'''
@@ -65,12 +67,21 @@ class Client(Connection):
         self.on_disconnected()
         self.close()
 
+    def _on_world_info(self, world: World) -> None:
+        ''''''
+        pass
+
     # -Instance Methods: API
     def disconnect(self, immediate: bool = False) -> None:
         '''Disconnect peer from server'''
         self.connection.disconnect()
         if immediate:
             self.host.flush()
+
+    def request_world_info(self) -> None:
+        '''Request world info from server connection'''
+        msg = WorldInfoRequestMessage()
+        self.send(msg, self.connection)
 
     def send_client_info(self) -> None:
         '''Send client information to the server'''

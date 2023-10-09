@@ -14,7 +14,8 @@ from enet import Address, Host, Peer  # type: ignore
 from .connection import CHANNELS, Connection
 from .messages import (
     AcceptMessage, ClientInfoMessage,
-    WorldInfoMessage, UnknownMessage,
+    WorldInfoMessage, WorldInfoRequestMessage,
+    UnknownMessage,
 )
 from ..version import Version
 
@@ -36,6 +37,7 @@ class Server(Connection):
         self.max_players: int = max_players
         # -Event Subscriptions
         self.subscribe_message(ClientInfoMessage, self._on_client_info)
+        self.subscribe_message(WorldInfoRequestMessage, self._on_world_info_request)
 
     # -Instance Methods
     def close(self) -> None:
@@ -60,10 +62,14 @@ class Server(Connection):
         self.on_disconnected(peer)
 
     def _on_client_info(self, name: str, version: Version, peer: Peer) -> None:
-        ''''''
+        '''INTERNAL: Accept connecting client into server'''
         LOGGER.info(f"Event: OnClientInfo[name: {name} | version: {version}")
         self.accept(peer)
         self.on_client_info(name, version, peer)
+
+    def _on_world_info_request(self, peer: Peer) -> None:
+        '''INTERNAL: Send world data on request'''
+        pass
 
     # -Instance Methods: API
     def accept(self, peer: Peer) -> None:
@@ -71,6 +77,11 @@ class Server(Connection):
         msg = AcceptMessage(1)
         self.send(msg, peer)
 
+    def send_world_info(self, peer: Peer) -> None:
+        ''''''
+        pass
+
     def on_connected(self, peer: Peer) -> None: ...
     def on_client_info(self, name: str, version: Version, peer: Peer) -> None: ...
     def on_disconnected(self, peer: Peer) -> None: ...
+    def on_world_info(self, peer: Peer) -> None: ...

@@ -11,6 +11,7 @@ from .base import Message
 from .accept import AcceptMessage
 from .clientinfo import ClientInfoMessage
 from .worldinfo import WorldInfoMessage
+from .worldinforequest import WorldInfoRequestMessage
 from .unknown import UnknownMessage
 
 ## Constants
@@ -37,8 +38,10 @@ def parse(data: bytes) -> Message:
             return AcceptMessage.from_bytes(data)
         case WorldInfoMessage.opcode:
             return WorldInfoMessage.from_bytes(data)
+        case WorldInfoRequestMessage.opcode:
+            return WorldInfoRequestMessage.from_bytes(data)
         case UnknownMessage.opcode:
             return UnknownMessage.from_bytes(data)
         case _:
             p_data = _bytes_to_hex_string(data)
-            raise NotImplementedError(f"Unknown header: {header} | data: {p_data}")
+            raise NotImplementedError(f"Unknown header: {header:0>4X} | data: {p_data}")

@@ -3,51 +3,45 @@
 ## Junk Jack X: Protocol         ##
 ## Written By: Ryan Smith        ##
 ##-------------------------------##
-## Message: Accept               ##
+## Message: World Info Request   ##
 ##-------------------------------##
 
 ## Imports
 from __future__ import annotations
 import struct
-from typing import Any
 
 from .base import Message
-from ...version import Version
 
 
 ## Classes
-# -Possible SuccessMessage
-# - where Code=1 = server accepted
-class AcceptMessage(Message):
+class WorldInfoRequestMessage(Message):
     """
-    JJx Message: Accept
+    JJx Message: World Info Request
     """
 
     # -Constructor
-    def __init__(self, code: int) -> None:
-        self.code: int = code
+    def __init__(self) -> None:
+        pass
 
     def __len__(self) -> int:
         return len(self.to_bytes())
 
     def __str__(self) -> str:
-        return f"Accept({self.code})"
+        return "WorldInfoRequest"
 
     # -Instance Methods
-    def to_args(self) -> tuple[int]:
-        return (self.code,)
+    def to_args(self) -> None:
+        return None
 
     def to_bytes(self) -> bytes:
         message = bytearray(struct.pack(">H", self.opcode))
-        message.extend(self.code.to_bytes(2, byteorder='little'))
+        message.extend(0x0000.to_bytes(2, byteorder='big'))
         return bytes(message)
 
     # -Class Methods
     @classmethod
-    def from_bytes(cls, data: bytes) -> AcceptMessage:
-        return cls(
-            int.from_bytes(data, byteorder='little')
-        )
+    def from_bytes(cls, data: bytes) -> WorldInfoRequestMessage:
+        return cls()
 
     # -Class Properties
-    opcode = 0x0003
+    opcode = 0x0009
