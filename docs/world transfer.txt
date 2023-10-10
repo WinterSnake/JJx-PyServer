@@ -4,10 +4,11 @@
     ----, ----, ----, ----,        # -Spawn Location
     ----, ----, ----, ----,        # -Player Position
     ----, ----, ----, ----, ----,  # -Time [Ticks<4> | Phase<1>]
-    0x01, 0x00,                    # ---UNKNOWN
+    ----,                          # -Time Running
+    ----,                          # -Weather
     ----, ----, ----, ----,        # -Planet [2 planets]
-    0x02,                          # ---UNKNOWN
-	----, ----, ----, ----,        # -Planet [2 planets]
+    ----,                          # -Difficulty
+    ----, ----, ----, ----,        # -Planet [2 planets]
     ----,                          # -Season
     ----,                          # -Gamemode
     ----,                          # -World Init Size
