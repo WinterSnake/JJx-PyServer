@@ -21,15 +21,15 @@ class Size(IntEnum):
     def get_world_size(self) -> tuple[int, int] | None:
         '''Returns world size in blocks'''
         match self:
-            case InitSize.Tiny:
+            case Size.Tiny:
                 return (512, 128)
-            case InitSize.Small:
+            case Size.Small:
                 return (768, 256)
-            case InitSize.Normal:
+            case Size.Normal:
                 return (1024, 256)
-            case InitSize.Large:
+            case Size.Large:
                 return (2048, 384)
-            case InitSize.Huge:
+            case Size.Huge:
                 return (4096, 512)
         return None
 

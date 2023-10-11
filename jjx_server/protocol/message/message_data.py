@@ -1,38 +1,31 @@
 #!/usr/bin/python
 ##-------------------------------##
-## Junk Jack X: Protocol         ##
+## Junk Jack X: Message          ##
 ## Written By: Ryan Smith        ##
 ##-------------------------------##
-## Message: Client Info          ##
+## Data                          ##
 ##-------------------------------##
 
 ## Imports
 from __future__ import annotations
 from abc import ABC, abstractmethod
-from typing import Any, ClassVar, Type
+from typing import Type
 
 
 ## Classes
-class Message:
+class MessageData(ABC):
     """
-    JJx: Base Message Interop
+    JJx Message: Data
     """
 
     # -Constructor
-    def __init__(self) -> None:
-        pass
+    def __init__(self) -> None: ...
 
     # -Instance Methods
-    @abstractmethod
-    def to_args(self) -> tuple[Any, ...] | None: ...
-
     @abstractmethod
     def to_bytes(self) -> bytes: ...
 
     # -Class Methods
     @classmethod
     @abstractmethod
-    def from_bytes(cls: Type[Message], data: bytes) -> Message: ...
-
-    # -Class Properties
-    opcode: ClassVar[int]
+    def from_bytes(cls, data: bytes) -> MessageData: ...
