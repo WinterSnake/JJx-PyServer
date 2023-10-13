@@ -13,7 +13,7 @@ from enet import Address, Host, Peer  # type: ignore
 
 from .connection import Connection
 from .message import (
-    ClientInfoData, ClientInfoResponseCode, ClientInfoResponseData, Message
+    ClientInfoData, ClientInfoResponseData, Message
 )
 from .user import User
 from ..version import Version
@@ -81,11 +81,11 @@ class Server(Connection):
     # -Instance Methods: API
     def accept_client(self, peer: Peer) -> None:
         '''Accept a jjx client peer'''
-        msg = Message.client_response(ClientInfoResponseCode.Success)
+        msg = Message.client_response(ClientInfoResponseData.Code.Success)
         self.send(msg, peer)
 
     # -Instance Methods: API Events
-    def on_process(self) -> None: ...
     def on_connected(self, peer: Peer) -> None: ...
     def on_client_info(self, user: User) -> None: ...
     def on_disconnected(self, peer: Peer) -> None: ...
+    def on_process(self) -> None: ...

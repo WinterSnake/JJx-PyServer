@@ -24,3 +24,4 @@ class User:
     def __init__(self, _id: int, character: Player) -> None:
         self.id: int = _id
         self.character: Player = character
+        self.ready: bool = False

@@ -8,12 +8,13 @@
 
 ## Imports
 from __future__ import annotations
+from enum import IntEnum
 
 from .message_data import MessageData
 from ...version import Version
 
 ## Constants
-__all__: tuple[str] = ("ClientInfoData",)
+__all__: tuple[str, str] = ("ClientInfoData", "ClientInfoResponseData")
 
 
 ## Classes
@@ -30,7 +31,7 @@ class ClientInfoData(MessageData):
 
     # -Dunder Methods
     def __str__(self) -> str:
-        return f"Id: {self.player_id}, Name: {self.player_name}, Version: {self.game_version.name}"
+        return f"ClientInfo {{Id: {self.player_id}, Name: {self.player_name}, Version: {self.game_version.name}}}"
 
     # -Instance Methods
     def to_bytes(self) -> bytes:
@@ -49,3 +50,33 @@ class ClientInfoData(MessageData):
             data[1: data.find(0x00, 1)].decode('ascii'),  # -Player Name
             Version(int.from_bytes(data[33:], byteorder='little'))  # -Game Version
         )
+
+
+class ClientInfoResponseData(MessageData):
+    """
+    JJx Message: Client Info Response
+    """
+
+    # -Constructor
+    def __init__(self, code: ClientInfoResponseData.Code) -> None:
+        self.code: ClientInfoResponseData.Code = code
+
+    # -Dunder Methods
+    def __str__(self) -> str:
+        return f"Client Info Response: {self.code.name}"
+
+    # -Instance Methods
+    def to_bytes(self) -> bytes:
+        return self.code.value.to_bytes(2, byteorder='little')
+
+    # -Class Methods
+    @classmethod
+    def from_bytes(cls, data: bytes) -> ClientInfoResponseData:
+        return cls(ClientInfoResponseData.Code(
+            int.from_bytes(data, byteorder='little')
+        ))
+
+    # -Sub-Classes
+    class Code(IntEnum):
+        """Client Response Code for connecting to server"""
+        Success = 1

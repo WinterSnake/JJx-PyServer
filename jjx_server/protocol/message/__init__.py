@@ -9,8 +9,8 @@ from __future__ import annotations
 from enum import IntEnum
 
 from .message_data import MessageData
-from .client_info import ClientInfoData
-from .client_response import ClientInfoResponseCode, ClientInfoResponseData
+from .client_info import ClientInfoData, ClientInfoResponseData
+from .world_info import WorldInfoData, WorldInfoRequestData
 from ...version import Version
 
 ## Constants
@@ -71,11 +71,19 @@ class Message:
 
     # -Server
     @classmethod
-    def client_response(cls, code: ClientInfoResponseCode) -> Message:
+    def client_response(cls, code: ClientInfoResponseData.Code) -> Message:
         '''Create a client response code message'''
         return cls(
             Message.Type.Management, Message.SubType.ClientInfoResponse,
             ClientInfoResponseData(code)
+        )
+
+    @classmethod
+    def world_info_request(cls) -> Message:
+        '''Create a world info request message'''
+        return cls(
+            Message.Type.Management, Message.SubType.WorldInfoRequest,
+            WorldInfoRequestData()
         )
 
     # -Sub-Classes
@@ -87,3 +95,4 @@ class Message:
         '''JJx Packet Subtype'''
         ClientInfo = 0x02
         ClientInfoResponse = 0x03
+        WorldInfoRequest = 0x09

@@ -14,7 +14,7 @@ from enet import Address, Host, Peer  # type: ignore
 
 from .connection import Connection
 from .message import (
-    ClientInfoResponseCode, ClientInfoResponseData, Message
+    ClientInfoResponseData, Message
 )
 from ..player import Player
 from .user import User
@@ -35,6 +35,7 @@ class Client(Connection, User):
     def __init__(self, player: Player) -> None:
         Connection.__init__(self, Host(None, 1, 0, 0))
         User.__init__(self, random.randint(1, 255), player)
+        self._world: World | None = None
 
     # -Instance Methods
     def close(self) -> None:
@@ -70,17 +71,23 @@ class Client(Connection, User):
                 assert isinstance(message.data, ClientInfoResponseData)
                 self._on_client_info_response(message.data.code)
 
-    def _on_client_info_response(self, code: ClientInfoResponseCode) -> None:
+    def _on_client_info_response(
+        self, code: ClientInfoResponseData.Code
+    ) -> None:
         '''Event for when client receives code from server login'''
-        if code == ClientInfoResponseCode.Success:
-            pass
-        self.on_client_info_response(code)
+        if code == ClientInfoResponseData.Code.Success:
+            self.request_world_info()
+            self.on_join()
 
     # -Instance Methods: API
     def disconnect(self) -> None:
         '''Send a disconnect packet to connected server'''
         self.remote.disconnect()
         self.host.flush()
+
+    def request_world_info(self) -> None:
+        ''''''
+        pass
 
     def send_client_info(self) -> None:
         '''Send client information to connected server'''
@@ -92,10 +99,10 @@ class Client(Connection, User):
         self.send(msg, self.remote)
 
     # -Instance Methods: API Events
-    def on_process(self) -> None: ...
+    def on_join(self) -> None: ...
     def on_connected(self) -> None: ...
-    def on_client_info_response(self, code: ClientInfoResponseCode) -> None: ...
     def on_disconnected(self) -> None: ...
+    def on_process(self) -> None: ...
 
     # -Properties
     @property
@@ -103,9 +110,10 @@ class Client(Connection, User):
         return self.remote.state == 5
 
     @property
-    def ready(self) -> bool:
-        return False
-
-    @property
     def remote(self) -> Peer:
         return self.host.peers[0]
+
+    @property
+    def world(self) -> World:
+        assert self._world is not None
+        return self._world
