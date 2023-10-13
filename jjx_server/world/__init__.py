@@ -6,18 +6,22 @@
 
 ## Imports
 from __future__ import annotations
+from pathlib import Path
+from typing import cast
 
+from .block import Block
+from .blockmap import BlockMap
 from .gamemode import Gamemode
-from .sizes import InitSize
 from .planet import Planet
 from .season import Season
+from .size import Size
 from .time import Time
-from .tilemap import TileMap
+from .weather import Weather
 
 ## Constants
 __all__: tuple[str, ...] = (
-    "Gamemode", "InitSize", "Planet",
-    "Season", "TileMap", "Time", "World"
+    "Block", "BlockMap", "Gamemode", "Planet",
+    "Season", "Size", "Time", "Weather", "World"
 )
 
 
@@ -29,57 +33,49 @@ class World:
 
     # -Constructor
     def __init__(
-        self, init_size: InitSize, sky_size: InitSize, size: tuple[int, int],
-        spawn: tuple[int, int], player: tuple[int, int], gamemode: Gamemode,
-        time: Time, planet: Planet, season: Season, blocks: TileMap,
-        language: str | None = "en"
+        self, init_size: Size, sky_size: Size, gamemode: Gamemode,
+        planet: Planet, season: Season, time: Time, borders: list[int] | None = None,
+        blockmap: BlockMap | None = None, size: list[int] | None = None
     ) -> None:
-        self.init_size: InitSize = init_size
-        self.sky_size: InitSize = sky_size
-        self._size: tuple[int, int] = size
-        self.spawn: tuple[int, int] = spawn
-        self.player: tuple[int, int] = player
+        self.init_size: Size = init_size
+        self.sky_size: Size = sky_size
         self.gamemode: Gamemode = gamemode
-        self.time: Time = time
         self.planet: Planet = planet
         self.season: Season = season
-        self.blocks: TileMap = blocks
-        self.language: str | None = language
-
-
-    # -Dunder Methods
-    def __len__(self) -> int:
-        return 0
+        self.time: Time = time
+        # -Initiate world borders
+        _borders = borders if borders else []
+        self.borders: list[int] = _borders
+        # -Initiate world blocks
+        if not blockmap:
+            _size = size
+            if init_size is not Size.Custom:
+                _size = init_size.get_world_size()
+            assert _size is not None
+            blockmap = BlockMap(_size, None)
+        self.blocks: BlockMap = blockmap
 
     # -Instance Methods
-    def resize(self, width: int, height: int) -> bool:
-        '''Resize world to new dimensions'''
-        if self.blocks.resize((width, height)):
-            self._size = (width, height)
-            return True
-        return False
-
-    def to_bytes(self) -> bytes:
-        return b''
+    def save(self, file_path: Path) -> None:
+        '''Save world to a file using archiver stream'''
+        pass
 
     # -Class Methods
     @classmethod
-    def from_bytes(cls, data: bytes) -> World:
-        return cls(
-            InitSize.Tiny, InitSize.Tiny, (0, 0), (0, 0), (0, 0),
-            Gamemode.Flat, Time(0, Time.Phase.Dusk), Planet.Terra,
-            Season.Null, TileMap((0, 0))
-        )
+    def load(cls, file_path: Path) -> World:
+        '''Load file as a world'''
+        return World()  # type: ignore
 
     # -Properties
     @property
     def height(self) -> int:
-        return self._size[0]
+        return self.blocks._size[0]
 
     @property
     def size(self) -> tuple[int, int]:
-        return self._size
+        _size = tuple(self.blocks._size)
+        return cast(tuple[int, int], _size)
 
     @property
     def width(self) -> int:
-        return self._size[1]
+        return self.blocks._size[0]

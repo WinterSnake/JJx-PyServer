@@ -10,6 +10,7 @@ from enum import IntEnum
 
 from .message_data import MessageData
 from .client_info import ClientInfoData
+from ...version import Version
 
 ## Constants
 __all__: tuple[str] = ("Message",)
@@ -53,6 +54,14 @@ class Message:
             case Message.SubType.ClientInfo:
                 msg_data = ClientInfoData.from_bytes(data[2:])
         return cls(_type, subtype, msg_data)
+
+    @classmethod
+    def client_info(cls, _id: int, name: str, version: Version) -> Message:
+        '''Create a client info message to send across socket'''
+        return cls(
+            Message.Type.Management, Message.SubType.ClientInfo,
+            ClientInfoData(_id, name, version)
+        )
 
     # -Sub-Classes
     class Type(IntEnum):

@@ -18,19 +18,19 @@ class Size(IntEnum):
     """JJx Init Sizes"""
 
     # -Instance Methods
-    def get_world_size(self) -> tuple[int, int] | None:
+    def get_world_size(self) -> list[int] | None:
         '''Returns world size in blocks'''
         match self:
             case Size.Tiny:
-                return (512, 128)
+                return [512, 128]
             case Size.Small:
-                return (768, 256)
+                return [768, 256]
             case Size.Normal:
-                return (1024, 256)
+                return [1024, 256]
             case Size.Large:
-                return (2048, 384)
+                return [2048, 384]
             case Size.Huge:
-                return (4096, 512)
+                return [4096, 512]
         return None
 
     # -Class Properties
