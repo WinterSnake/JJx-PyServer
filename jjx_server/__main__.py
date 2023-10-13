@@ -9,11 +9,12 @@ import logging
 import sys
 from pathlib import Path
 
+from .player import Player
 from .protocol import Client, Server
-from .version import Version
+from .world import World
 
 ## Constants
-HOST: str = "10.0.0.135"
+IP: str = "10.0.0.135"
 PORT: int = 12345
 USE_LOGGING: bool = True
 LOGCOUNT: int = 0
@@ -27,18 +28,18 @@ while USE_LOGGING:
         break
     LOGCOUNT += 1
 logging.basicConfig(filename=LOGPATH, level=logging.DEBUG, format="[%(levelname)s]%(message)s")
-# -Run client
+# -Run client/server
 if len(sys.argv) > 1 and sys.argv[1] in ("-c", "--client"):
-    client = Client("Test Debug")
+    player = Player("Test Debug")
+    client = Client(player)
     try:
-        client.run(HOST, PORT)
+        client.run(IP, PORT)
     except KeyboardInterrupt:
         client.close()
-# -Run server
 else:
-    server = Server("Example Server")
-    print(f"Running server '{server.name}' @ {HOST}:{PORT}")
+    #world = World.load(Path("./data/worlds/Tiny-Empty.dat"))
+    server = Server()
     try:
-        server.run(HOST, PORT)
+        server.run(IP, PORT)
     except KeyboardInterrupt:
         server.close()

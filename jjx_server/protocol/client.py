@@ -8,114 +8,104 @@
 
 ## Imports
 import logging
+import random
 
 from enet import Address, Host, Peer  # type: ignore
 
-from .connection import CHANNELS, Connection
-from .messages import (
-    AcceptMessage, ClientInfoMessage,
-    WorldDataMessage, WorldInfoMessage, WorldInfoRequestMessage,
-    Unknown1Message,
+from .connection import Connection
+from .message import (
+    ClientInfoResponseCode, ClientInfoResponseData, Message
 )
-from ..version import Version
-from ..world import Planet, TileMap, World
+from ..player import Player
+from .user import User
+from ..world import World
 
 ## Constants
+__all__: tuple[str] = ("Client",)
 LOGGER = logging.getLogger(__name__)
 
 
 ## Classes
-class Client(Connection):
+class Client(Connection, User):
     """
-    JJx: Client Connection
+    JJx: Base Client
     """
 
     # -Constructor
-    def __init__(
-        self, name: str, version: Version = Version.Latest
-    ) -> None:
-        super().__init__(Host(None, 1, CHANNELS))
-        self.name: str = name
-        self.version: Version = version
-        self._world: World | None = None
-        # -Event Subscriptions
-        self.subscribe_message(AcceptMessage, self._on_accepted)
-        self.subscribe_message(WorldInfoMessage, self._on_world_info)
-        self.subscribe_message(WorldDataMessage, self._on_world_data)
+    def __init__(self, player: Player) -> None:
+        Connection.__init__(self, Host(None, 1, 0, 0))
+        User.__init__(self, random.randint(1, 255), player)
 
     # -Instance Methods
     def close(self) -> None:
-        if self.connected:
-            self.disconnect(immediate=True)
+        pass
 
     def run(self, ip: str, port: int) -> None:
         '''Connect to server and run enet loop for handling server messages'''
-        self._peer = self.host.connect(Address(ip.encode('utf-8'), port), CHANNELS)
-        super().run(ip, port)
+        self.host.connect(Address(ip.encode('utf-8'), port), 0)
+        while True:
+            self.process_messages()
+            if self.ready:
+                self.on_process()
 
-    def _on_accepted(self, code: int, peer) -> None:
-        '''Client accepted into server event'''
-        self.request_world_info()
-
+    # -Instance Methods: Internal API Events
     def _on_connected(self, peer: Peer) -> None:
-        '''Log server peer info'''
-        LOGGER.info(f"Client connected to {peer.address}")
+        '''Event for when client connects to server successfully'''
+        LOGGER.info(f"Successfully connected to @{peer.address}")
         self.send_client_info()
         self.on_connected()
 
     def _on_disconnected(self, peer: Peer) -> None:
-        '''Log server peer info'''
-        LOGGER.info(f"Client disconnected from {peer.address}")
+        '''Event for when client disconnect to server successfully'''
+        LOGGER.info(f"Disconnected from @{peer.address}")
         self.on_disconnected()
-        self.close()
 
-    def _on_world_data(self, data: bytes, peer: Peer) -> None:
-        ''''''
-        self.world.blocks = TileMap.from_bytes(data, self.world.size, compressed=True)
-        self.on_world_data(self.world.blocks)
+    def _on_message(self, message: Message, peer: Peer) -> None:
+        '''JJx Client Message event handler'''
+        LOGGER.info(f"Received message [{message}] from @{peer.address}")
+        match message.subtype:
+            case Message.SubType.ClientInfoResponse:
+                print(type(message.data))
+                assert message.data is not None
+                assert isinstance(message.data, ClientInfoResponseData)
+                self._on_client_info_response(message.data.code)
 
-    def _on_world_info(self, world: World, planet: Planet, peer: Peer) -> None:
-        ''''''
-        self._world = world
-        self.on_world_info(world, planet)
-
-    def _on_unknown1(self, data: bytes, peer: Peer) -> None:
-        ''''''
-        LOGGER.warn(f"Unknown compressed data: {data!r}")
+    def _on_client_info_response(self, code: ClientInfoResponseCode) -> None:
+        '''Event for when client receives code from server login'''
+        if code == ClientInfoResponseCode.Success:
+            pass
+        self.on_client_info_response(code)
 
     # -Instance Methods: API
-    def disconnect(self, immediate: bool = False) -> None:
-        '''Disconnect peer from server'''
-        self.connection.disconnect()
-        if immediate:
-            self.host.flush()
-
-    def request_world_info(self) -> None:
-        '''Request world info from server connection'''
-        msg = WorldInfoRequestMessage()
-        self.send(msg, self.connection)
+    def disconnect(self) -> None:
+        '''Send a disconnect packet to connected server'''
+        self.remote.disconnect()
+        self.host.flush()
 
     def send_client_info(self) -> None:
-        '''Send client information to the server'''
-        msg = ClientInfoMessage(self.name, self.version)
-        self.send(msg, self.connection)
+        '''Send client information to connected server'''
+        msg = Message.client_info(
+            self.id,
+            self.character.name,
+            self.character.version
+        )
+        self.send(msg, self.remote)
 
+    # -Instance Methods: API Events
+    def on_process(self) -> None: ...
     def on_connected(self) -> None: ...
+    def on_client_info_response(self, code: ClientInfoResponseCode) -> None: ...
     def on_disconnected(self) -> None: ...
-    def on_world_info(self, world: World, planet: Planet) -> None: ...
-    def on_world_data(self, tilemap: TileMap) -> None: ...
 
     # -Properties
     @property
     def connected(self) -> bool:
-        return self.connection.state == 5
+        return self.remote.state == 5
 
     @property
-    def connection(self) -> Peer:
-        '''Returns server peer'''
+    def ready(self) -> bool:
+        return False
+
+    @property
+    def remote(self) -> Peer:
         return self.host.peers[0]
-
-    @property
-    def world(self) -> World:
-        assert self._world is not None
-        return self._world

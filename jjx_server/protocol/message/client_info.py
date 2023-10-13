@@ -12,6 +12,9 @@ from __future__ import annotations
 from .message_data import MessageData
 from ...version import Version
 
+## Constants
+__all__: tuple[str] = ("ClientInfoData",)
+
 
 ## Classes
 class ClientInfoData(MessageData):
