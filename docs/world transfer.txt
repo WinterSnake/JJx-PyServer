@@ -13,7 +13,6 @@
     ----,                          # -Gamemode
     ----,                          # -World Init Size
     ----,                          # -Sky Init Size
-    ----, ----,                    # -Language
-    0xFF, 0x7F,                    # ---UNKNOWN
+    ----, ----, ----, ----,        # -Language
     ----, ----, ----, ----         # -World Size (in bytes)
 ]
