@@ -4,3 +4,6 @@ This is my attempt at learning a bit about reverse engineering game network prot
 
 ## Requirements
 Requires pyenet to run.
+
+## Archived
+Archived to unify JJx Server into a single C# project.
